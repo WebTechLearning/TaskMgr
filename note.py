@@ -1,7 +1,10 @@
+from datetime import datetime
+
 class Note:
-    def __init__(self, index, context):
+    def __init__(self, index, context, timestamp):
         self.__index = index
         self.__context = context
+        self.__timestamp = timestamp
 
     def __str__(self):
         return str(self.__index) + '. ' + self.__context
