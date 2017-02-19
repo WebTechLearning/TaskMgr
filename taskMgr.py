@@ -3,20 +3,37 @@ from contextlib import contextmanager
 from task import Task
 # from note import Note
 
+class Sqlite3Interphase:
+    def __init__(self, db):
+        self.__db = db
+
+    def Connect(self):
+        self.__connect = sqlite3.connect(self.__db)
+        self.__cursor = self.__connect.cursor()
+
+    def CommitAndClose(self):
+        self.__connect.commit()
+        self.__connect.close()
+
+    @property
+    def cursor(self):
+        return self.__cursor
+
 class TaskMgr:
     def __init__(self):
+        self.__db = Sqlite3Interphase('taskDB')
         self.TAGS = ['TODAY', 'WEEK', 'TODO']
-        self.ConnectSqlite()
-        self.__sqlCur.execute(
+        self.__db.Connect()
+        self.__db.cursor.execute(
             '''CREATE TABLE IF NOT EXISTS tasks
             (title text primary key, tag text, context text, Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-        self.DisconnectSqlite()
+        self.__db.CommitAndClose()
 
     @contextmanager
     def DbChange(self):
-        self.ConnectSqlite()
+        self.__db.Connect()
         yield
-        self.DisconnectSqlite()
+        self.__db.CommitAndClose()
 
     @contextmanager
     def CmdContext(self, cmd):
@@ -24,35 +41,27 @@ class TaskMgr:
         yield
         print('END taskMgr.' + cmd)
 
-    def ConnectSqlite(self):
-        self.__sqlConn = sqlite3.connect('taskDB')
-        self.__sqlCur = self.__sqlConn.cursor()
-
-    def DisconnectSqlite(self):
-        self.__sqlConn.commit()
-        self.__sqlConn.close()
-
     def New(self, args):
         with self.CmdContext('New'):
             with self.DbChange():
-                self.__sqlCur.execute('INSERT INTO tasks(title, tag, context) VALUES (?, ?, ?)', (args.title[0], 'TODO', args.context[0]))
+                self.__db.cursor.execute('INSERT INTO tasks(title, tag, context) VALUES (?, ?, ?)', (args.title[0], 'TODO', args.context[0]))
 
     def Remove(self, args):
         with self.CmdContext('Remove'):
             with self.DbChange():
-                self.__sqlCur.execute('DELETE FROM tasks WHERE title=\'' + args.title[0] + '\'')
+                self.__db.cursor.execute('DELETE FROM tasks WHERE title=\'' + args.title[0] + '\'')
 
     def Move(self, args):
         with self.CmdContext('Move'):
             with self.DbChange():
-                self.__sqlCur.execute('UPDATE tasks SET tag=\'' + args.to.upper() + '\' WHERE title=\'' + args.title[0] + '\'')
+                self.__db.cursor.execute('UPDATE tasks SET tag=\'' + args.to.upper() + '\' WHERE title=\'' + args.title[0] + '\'')
 
     def Show(self, args):
         with self.CmdContext('Show'):
             with self.DbChange():
                 for tag in self.TAGS:
                     print('----', tag, '----')
-                    tasks = self.__sqlCur.execute('SELECT * FROM tasks WHERE tag=\'' + tag + '\'')
+                    tasks = self.__db.cursor.execute('SELECT * FROM tasks WHERE tag=\'' + tag + '\'')
                     for task in tasks:
                         print(' '.join(task))
 
