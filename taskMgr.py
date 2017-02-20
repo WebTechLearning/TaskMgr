@@ -1,7 +1,5 @@
 import sqlite3
 from contextlib import contextmanager
-from task import Task
-# from note import Note
 
 class Sqlite3Interphase:
     def __init__(self, db):
@@ -42,7 +40,7 @@ class TaskTable(Sqlite3Interphase):
 
     def New(self, title, context):
         with self.TableChange():
-            self.cursor.execute('INSERT INTO tasks(title, tag, context) VALUES (?, ?, ?)', (title, 'TODO', context))
+            self.cursor.execute('INSERT OR IGNORE INTO tasks(title, tag, context) VALUES (?, ?, ?)', (title, 'TODO', context))
 
     def Delete(self, title):
         with self.TableChange():
