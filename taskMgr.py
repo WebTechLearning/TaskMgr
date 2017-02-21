@@ -119,18 +119,7 @@ cmdMove.set_defaults(func = taskMgr.Move)
 cmdShow = subparsers.add_parser('show')
 cmdShow.set_defaults(func = taskMgr.Show)
 
-# TEST
-args = parser.parse_args(['new', 'AP-1', 'AP-1 context'])
-args.func(args)
-args = parser.parse_args(['new', 'AP-2', 'AP-2 context'])
-args.func(args)
-args = parser.parse_args(['new', 'AP-3', 'AP-3 context'])
-args.func(args)
-args = parser.parse_args(['remove', 'AP-3'])
-args.func(args)
-args = parser.parse_args(['move', 'AP-1', '-to', 'today'])
-args.func(args)
-args = parser.parse_args(['move', 'AP-2', '-to', 'week'])
-args.func(args)
-args = parser.parse_args(['show'])
-args.func(args)
+if __name__ == '__main__':
+    args = parser.parse_args()
+    args.func(args)
+
